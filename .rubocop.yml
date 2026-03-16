@@ -1,0 +1,23 @@
+AllCops:
+  TargetRubyVersion: 3.3
+  NewCops: enable
+  SuggestExtensions: false
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - '*.gemspec'
+
+Metrics/AbcSize:
+  Exclude:
+    - 'lib/puma/plugin/health_check.rb'
+
+Metrics/MethodLength:
+  Exclude:
+    - 'lib/puma/plugin/health_check.rb'
+
+Gemspec/DevelopmentDependencies:
+  Enabled: false
