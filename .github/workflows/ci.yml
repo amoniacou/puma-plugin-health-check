@@ -30,12 +30,11 @@ jobs:
         include:
           - ruby: head
             puma: '7'
-    env:
-      PUMA_VERSION: ${{ matrix.puma }}
     steps:
       - uses: actions/checkout@v6
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
-      - run: bundle exec rake spec
+      - run: bundle exec appraisal install
+      - run: bundle exec appraisal puma-${{ matrix.puma }} rake spec
