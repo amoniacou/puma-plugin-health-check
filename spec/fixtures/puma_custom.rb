@@ -1,19 +1,12 @@
 # frozen_string_literal: true
 
-require 'puma_plugin_health_check'
+require_relative '../../lib/puma/plugin/health_check'
 
-app_path = File.expand_path('app.rb', __dir__)
-
-health_check_port = ENV.fetch('HEALTH_CHECK_PORT', '0').to_i
-
+rackup File.expand_path('config.ru', __dir__)
 bind 'tcp://127.0.0.1:0'
 workers 0
-app_dir __dir__
 
-app do
-  require app_path
-  App
-end
+health_check_port = ENV.fetch('HEALTH_CHECK_PORT', '0').to_i
 
 PumaPluginHealthCheck.configure do |c|
   c.port = health_check_port
