@@ -29,7 +29,7 @@ RSpec.describe 'Puma health check plugin integration', :integration do
     rescue IO::WaitReadable
       IO.select([@output_read], nil, nil, 0.1)
       retry
-    rescue EOFError
+    rescue EOFError, IOError
       # done
     end
   end
@@ -95,6 +95,33 @@ RSpec.describe 'Puma health check plugin integration', :integration do
 
     it 'unknown path returns 404' do
       response = http_get(health_port, '/unknown')
+      expect(response).to include('HTTP/1.1 404')
+    end
+  end
+
+  describe 'with custom configuration' do
+    let(:custom_port) { find_available_port }
+    let!(:health_port) do
+      start_puma('puma_custom.rb', env: { 'HEALTH_CHECK_PORT' => custom_port.to_s })
+      wait_for_health_check_port
+    end
+
+    it 'uses the configured port' do
+      expect(health_port).to eq(custom_port)
+    end
+
+    it 'custom liveness path returns 200' do
+      response = http_get(health_port, '/healthz/live')
+      expect(response).to include('HTTP/1.1 200')
+    end
+
+    it 'custom readiness path returns 200' do
+      response = http_get(health_port, '/healthz/ready')
+      expect(response).to include('HTTP/1.1 200')
+    end
+
+    it 'default paths return 404 when custom paths configured' do
+      response = http_get(health_port, '/checks/_liveness')
       expect(response).to include('HTTP/1.1 404')
     end
   end
