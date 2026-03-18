@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'simplecov'
+SimpleCov.start
+
 require 'puma_plugin_health_check/configuration'
 
 RSpec.configure do |config|
