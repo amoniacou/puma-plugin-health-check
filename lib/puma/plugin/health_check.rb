@@ -22,14 +22,6 @@ module PumaPluginHealthCheck
 end
 
 Puma::Plugin.create do
-  def config(dsl)
-    dsl.instance_eval do
-      define_method(:health_check) do |&blk|
-        blk&.call(PumaPluginHealthCheck.configuration)
-      end
-    end
-  end
-
   def start(launcher)
     launcher.log_writer.log '* Starting health check server'
 
