@@ -11,26 +11,30 @@ RSpec.describe 'Puma health check plugin integration', :integration do
   def start_puma(config_file, env: {})
     config_path = File.join(fixtures_dir, config_file)
     @output_read, output_write = IO.pipe
+    @pid = spawn_puma(env, config_path, output_write)
+    output_write.close
+    start_output_reader
+  end
 
-    @pid = Process.spawn(
+  def spawn_puma(env, config_path, output_write)
+    Process.spawn(
       env,
       'bundle', 'exec', 'puma', '-C', config_path,
       chdir: project_root,
       out: output_write,
       err: output_write
     )
-    output_write.close
+  end
 
+  def start_output_reader
     @output_buffer = +''
     @output_thread = Thread.new do
-      while (chunk = @output_read.read_nonblock(4096))
-        @output_buffer << chunk
+      loop do
+        @output_read.wait_readable(0.1)
+        @output_buffer << @output_read.read_nonblock(4096)
+      rescue IO::WaitReadable then retry
+      rescue IOError then break
       end
-    rescue IO::WaitReadable
-      IO.select([@output_read], nil, nil, 0.1)
-      retry
-    rescue EOFError, IOError
-      # done
     end
   end
 
