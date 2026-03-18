@@ -125,4 +125,22 @@ RSpec.describe 'Puma health check plugin integration', :integration do
       expect(response).to include('HTTP/1.1 404')
     end
   end
+
+  describe 'graceful shutdown' do
+    it 'stops health check server on TERM signal' do
+      start_puma('puma_basic.rb')
+      health_port = wait_for_health_check_port
+
+      response = http_get(health_port, '/checks/_liveness')
+      expect(response).to include('HTTP/1.1 200')
+
+      Process.kill('TERM', @pid)
+      status = nil
+      Timeout.timeout(10) { _, status = Process.wait2(@pid) }
+      @pid = nil
+
+      expect(status.exited? || status.signaled?).to be true
+      expect { TCPSocket.new('127.0.0.1', health_port) }.to raise_error(Errno::ECONNREFUSED)
+    end
+  end
 end
