@@ -7,3 +7,7 @@ end
 appraise 'puma-7' do
   gem 'puma', '~> 7.0'
 end
+
+appraise 'puma-head' do
+  gem 'puma', github: 'puma/puma'
+end
